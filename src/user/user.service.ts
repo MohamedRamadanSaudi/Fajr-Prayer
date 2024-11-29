@@ -29,6 +29,21 @@ export class UserService {
       orderBy: {
         points: 'desc',
       },
+      select: {
+        id: true,
+        name: true,
+        photo: true,
+        points: true,
+        totalAmount: true,
+        UserDay: {
+          select: {
+            id: true,
+            date: true,
+            wakeUp: true,
+            photo: true,
+          }
+        }
+      }
     });
   }
 
@@ -57,6 +72,21 @@ export class UserService {
   findOne(id: string) {
     return this.prisma.user.findFirst({
       where: { id },
+      select: {
+        id: true,
+        name: true,
+        photo: true,
+        points: true,
+        totalAmount: true,
+        UserDay: {
+          select: {
+            id: true,
+            date: true,
+            wakeUp: true,
+            photo: true,
+          }
+        }
+      }
     });
   }
 
