@@ -3,6 +3,7 @@ import { DaysService } from './days.service';
 import { CreateDayDto } from './dto/create-day.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { UpdateDayDto } from './dto/update-day.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('days')
@@ -29,7 +30,8 @@ export class DaysController {
   update(
     @Param('id') id: string,
     @UploadedFile() photo: Express.Multer.File,
+    @Body() body: UpdateDayDto,
   ) {
-    return this.daysService.update(id, photo);
+    return this.daysService.update(id, body, photo);
   }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateDayDto } from './dto/create-day.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { UpdateDayDto } from './dto/update-day.dto';
 
 @Injectable()
 export class DaysService {
@@ -42,22 +43,26 @@ export class DaysService {
     });
   }
 
-  async update(id: string, photo?: Express.Multer.File) {
+  async update(id: string, body: UpdateDayDto, photo?: Express.Multer.File) {
     const photoUrl = await this.cloudinaryService.uploadImage(photo);
 
-    // Increment the points of the user that his id in userDay by 15 points then save the photoUrl in the userDay
     return this.prisma.$transaction([
+      this.prisma.user.update({
+        where: {
+          id: body.userId,
+        },
+        data: {
+          points: {
+            increment: 15,
+          },
+        },
+      }),
       this.prisma.userDay.update({
         where: {
           id,
         },
         data: {
-          user: {
-            points: {
-              increment: 15,
-            }
-          },
-          photoUrl,
+          photo: photoUrl,
         },
       }),
     ]);
