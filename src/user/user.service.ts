@@ -74,6 +74,7 @@ export class UserService {
       where: { id },
       select: {
         id: true,
+        username: true,
         name: true,
         photo: true,
         points: true,
