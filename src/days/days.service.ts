@@ -3,6 +3,7 @@ import { CreateDayDto } from './dto/create-day.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UpdateDayDto } from './dto/update-day.dto';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class DaysService {
@@ -66,6 +67,61 @@ export class DaysService {
         },
       }),
     ]);
+  }
+
+  @Cron('35 6 * * *') // Run at 6:35 AM every day
+  async createDefaultUserDaysJob() {
+    await this.createDefaultUserDays();
+  }
+
+  // Create default UserDay for users who haven't created it yet
+  async createDefaultUserDays() {
+    const today = new Date();
+    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+    const users = await this.prisma.user.findMany({
+      where: {
+        UserDay: {
+          none: {
+            date: {
+              gte: startOfDay,
+              lte: endOfDay,
+            },
+          },
+        },
+      },
+    });
+
+    const userDayPromises = users.map((user) =>
+      this.prisma.userDay.upsert({
+        where: {
+          userId_date: {
+            userId: user.id,
+            date: today,
+          },
+        },
+        update: {},
+        create: {
+          userId: user.id,
+          date: today,
+          wakeUp: false,
+        },
+      })
+    );
+
+
+    return Promise.all(userDayPromises);
+  }
+
+  async testCreateDefaultUserDays() {
+    try {
+      const result = await this.createDefaultUserDays();
+      return result;
+    } catch (error) {
+      console.error('Error creating default user days:', error);
+      throw error;
+    }
   }
 
 }

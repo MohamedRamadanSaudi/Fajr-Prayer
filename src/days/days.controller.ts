@@ -20,6 +20,11 @@ export class DaysController {
     return this.daysService.findAll();
   }
 
+  @Get('test-default-days')
+  get() {
+    return this.daysService.testCreateDefaultUserDays();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.daysService.findOne(id);
