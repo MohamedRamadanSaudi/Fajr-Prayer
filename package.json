@@ -25,7 +25,6 @@
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/mapped-types": "*",
     "@nestjs/platform-express": "^10.4.7",
-    "@nestjs/schedule": "^4.1.1",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "class-validator": "^0.14.1",

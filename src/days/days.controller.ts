@@ -5,31 +5,34 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UpdateDayDto } from './dto/update-day.dto';
 
-@UseGuards(JwtAuthGuard)
 @Controller('days')
 export class DaysController {
   constructor(private readonly daysService: DaysService) { }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createDayDto: CreateDayDto) {
     return this.daysService.create(createDayDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.daysService.findAll();
   }
 
-  @Get('test-default-days')
+  @Get('default-days')
   get() {
-    return this.daysService.testCreateDefaultUserDays();
+    return this.daysService.createDefaultUserDays();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.daysService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('photo'))
   update(

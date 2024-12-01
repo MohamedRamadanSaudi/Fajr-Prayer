@@ -3,7 +3,6 @@ import { CreateDayDto } from './dto/create-day.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UpdateDayDto } from './dto/update-day.dto';
-import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class DaysService {
@@ -69,12 +68,7 @@ export class DaysService {
     ]);
   }
 
-  @Cron('35 6 * * *') // Run at 6:35 AM every day
-  async createDefaultUserDaysJob() {
-    await this.createDefaultUserDays();
-  }
-
-  // Create default UserDay for users who haven't created it yet
+  // Create default UserDay for users who haven't created it yet by Sunrise
   async createDefaultUserDays() {
     const today = new Date();
     const startOfDay = new Date(today.setHours(0, 0, 0, 0));
@@ -112,16 +106,6 @@ export class DaysService {
 
 
     return Promise.all(userDayPromises);
-  }
-
-  async testCreateDefaultUserDays() {
-    try {
-      const result = await this.createDefaultUserDays();
-      return result;
-    } catch (error) {
-      console.error('Error creating default user days:', error);
-      throw error;
-    }
   }
 
 }
