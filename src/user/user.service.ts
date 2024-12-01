@@ -69,8 +69,8 @@ export class UserService {
     };
   }
 
-  findOne(id: string) {
-    return this.prisma.user.findFirst({
+  async findOne(id: string) {
+    const user = await this.prisma.user.findFirst({
       where: { id },
       select: {
         id: true,
@@ -89,6 +89,19 @@ export class UserService {
         }
       }
     });
+
+    const users = await this.prisma.user.findMany({
+      orderBy: {
+        points: 'desc',
+      },
+    });
+
+    const rank = users.findIndex((u) => u.id === user.id) + 1;
+
+    return {
+      rank,
+      ...user,
+    };
   }
 
   async update(id: string, updateUserDto: UpdateUserDto, photo?: Express.Multer.File) {
