@@ -5,10 +5,9 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [CloudinaryModule, ScheduleModule.forRoot()],
+  imports: [CloudinaryModule],
   controllers: [DaysController],
   providers: [DaysService, PrismaService, JwtService, CloudinaryService],
 })
