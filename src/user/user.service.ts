@@ -139,8 +139,18 @@ export class UserService {
   }
 
   remove(id: string) {
-    return this.prisma.user.delete({
-      where: { id },
-    });
+    // delete the user days and the user
+    return this.prisma.$transaction([
+      this.prisma.userDay.deleteMany({
+        where: {
+          userId: id,
+        },
+      }),
+      this.prisma.user.delete({
+        where: {
+          id,
+        },
+      }),
+    ]);
   }
 }
