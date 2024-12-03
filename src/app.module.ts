@@ -8,15 +8,20 @@ import { MulterModule } from '@nestjs/platform-express';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserModule } from './user/user.module';
 import { DaysModule } from './days/days.module';
+import { MorganInterceptor, MorganModule } from 'nest-morgan';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 
 @Module({
   imports: [
     MulterModule.register({
       dest: './uploads',
     }),
-    AdminModule, AuthModule, CloudinaryModule, UserModule, DaysModule],
+    MorganModule, AdminModule, AuthModule, CloudinaryModule, UserModule, DaysModule],
   controllers: [AppController],
-  providers: [AppService, PrismaService],
+  providers: [AppService, PrismaService, {
+    provide: APP_INTERCEPTOR,
+    useClass: MorganInterceptor("combined"),
+  },],
   exports: [PrismaService],
 })
 export class AppModule { }
