@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateDayDto } from './dto/create-day.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
@@ -29,6 +29,54 @@ export class DaysService {
     ]);
   }
 
+  createByAdmin(createDayDto: CreateDayDto, photo?: Express.Multer.File) {
+    return this.prisma.$transaction(async (tx) => {
+      // Check if the user exists
+      const user = await tx.user.findUnique({
+        where: {
+          id: createDayDto.userId,
+        },
+      });
+
+      if (!user) {
+        throw new HttpException('User not found', 404);
+      }
+
+      let photoUrl = null;
+      let pointsIncrement = 10;
+
+      // If a photo is provided, upload it to Cloudinary
+      if (photo) {
+        photoUrl = await this.cloudinaryService.uploadImage(photo);
+        pointsIncrement = 25; // Increment points by 25 if a photo is uploaded
+      }
+
+      // Increment user's points
+      await tx.user.update({
+        where: {
+          id: createDayDto.userId,
+        },
+        data: {
+          points: {
+            increment: pointsIncrement,
+          },
+        },
+      });
+
+      // Create a new userDay entry
+      const userDay = await tx.userDay.create({
+        data: {
+          wakeUp: createDayDto.wakeUp === true || String(createDayDto.wakeUp).toLowerCase() === "true",
+          userId: createDayDto.userId,
+          date: createDayDto.date,
+          photo: photoUrl,
+        },
+      });
+
+      return userDay;
+    });
+  }
+
   findAll() {
     return this.prisma.userDay.findMany({
       orderBy: {
@@ -37,10 +85,15 @@ export class DaysService {
     });
   }
 
-  findOne(id: string) {
-    return this.prisma.userDay.findFirst({
+  async findOne(id: string) {
+    const day = await this.prisma.userDay.findFirst({
       where: { id },
     });
+
+    if (!day) {
+      throw new HttpException('Day not found', 404);
+
+    }
   }
 
   async update(id: string, body: UpdateDayDto, photo?: Express.Multer.File) {

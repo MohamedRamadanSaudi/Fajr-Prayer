@@ -16,6 +16,16 @@ export class DaysController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post('admin')
+  @UseInterceptors(FileInterceptor('photo'))
+  createByAdmin(
+    @UploadedFile() photo: Express.Multer.File,
+    @Body() createDayDto: CreateDayDto
+  ) {
+    return this.daysService.createByAdmin(createDayDto, photo);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.daysService.findAll();

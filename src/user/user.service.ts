@@ -90,6 +90,10 @@ export class UserService {
       }
     });
 
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+
     const users = await this.prisma.user.findMany({
       orderBy: {
         points: 'desc',
@@ -138,19 +142,27 @@ export class UserService {
     return result;
   }
 
-  remove(id: string) {
-    // delete the user days and the user
-    return this.prisma.$transaction([
-      this.prisma.userDay.deleteMany({
+  async remove(id: string) {
+    // delete the user days and the user and return massage deleted successfully and if no user return user not found
+    try {
+      await this.prisma.userDay.deleteMany({
         where: {
           userId: id,
         },
-      }),
-      this.prisma.user.delete({
+      });
+
+      await this.prisma.user.delete({
         where: {
           id,
         },
-      }),
-    ]);
+      });
+
+      return {
+        message: 'User deleted successfully',
+      }
+    } catch (e) {
+      throw new HttpException('User not found', 404);
+      console.log(e);
+    }
   }
 }

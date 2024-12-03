@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsBoolean, IsDate } from 'class-validator';
+import { IsNotEmpty, IsString, IsBoolean, IsDate, IsOptional } from 'class-validator';
 
 export class CreateDayDto {
   @IsNotEmpty()
@@ -12,4 +12,7 @@ export class CreateDayDto {
   @IsNotEmpty()
   @IsBoolean()
   wakeUp: boolean;
+
+  @IsOptional()
+  photo?: any
 }
