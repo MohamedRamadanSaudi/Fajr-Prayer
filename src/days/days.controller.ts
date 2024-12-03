@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseInterceptors, UploadedFile, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseInterceptors, UploadedFile, UseGuards, Delete } from '@nestjs/common';
 import { DaysService } from './days.service';
 import { CreateDayDto } from './dto/create-day.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -41,5 +41,11 @@ export class DaysController {
     @Body() body: UpdateDayDto,
   ) {
     return this.daysService.update(id, body, photo);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.daysService.remove(id);
   }
 }

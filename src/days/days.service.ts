@@ -108,4 +108,10 @@ export class DaysService {
     return Promise.all(userDayPromises);
   }
 
+  remove(id: string) {
+    return this.prisma.userDay.delete({
+      where: { id },
+    });
+  }
+
 }
