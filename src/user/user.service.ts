@@ -3,6 +3,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { parse } from 'path';
 
 @Injectable()
 export class UserService {
@@ -110,11 +111,6 @@ export class UserService {
 
   async update(id: string, updateUserDto: UpdateUserDto, photo?: Express.Multer.File) {
 
-    let photoUrl: string;
-    if (photo) {
-      photoUrl = await this.cloudinaryService.uploadImage(photo);
-    }
-
     const user = await this.prisma.user.findFirst({
       where: { id },
       select: { photo: true },
@@ -125,7 +121,16 @@ export class UserService {
     }
 
     if (user?.photo) {
-      this.cloudinaryService.deleteImage(user?.photo);
+      const urlParts = user.photo.split('/'); // Split the URL
+      const publicIdWithExtension = urlParts[urlParts.length - 1]; // Get the last part
+      const publicId = parse(publicIdWithExtension).name; // Remove the file extension
+
+      await this.cloudinaryService.deleteImage(`uploads/${publicId}`); // Adjust the folder path if necessary
+    }
+
+    let photoUrl: string;
+    if (photo) {
+      photoUrl = await this.cloudinaryService.uploadImage(photo);
     }
 
     updateUserDto.points = Number(updateUserDto.points);
@@ -143,14 +148,28 @@ export class UserService {
   }
 
   async remove(id: string) {
-    // delete the user days and the user and return massage deleted successfully and if no user return user not found
     try {
+      // Delete related user days
       await this.prisma.userDay.deleteMany({
         where: {
           userId: id,
         },
       });
+      // Find the user's photo
+      const user = await this.prisma.user.findFirst({
+        where: { id },
+        select: { photo: true },
+      });
+      // If the photo URL exists, extract the public ID and delete the photo
+      if (user?.photo) {
+        const urlParts = user.photo.split('/'); // Split the URL
+        const publicIdWithExtension = urlParts[urlParts.length - 1]; // Get the last part
+        const publicId = parse(publicIdWithExtension).name; // Remove the file extension
 
+        await this.cloudinaryService.deleteImage(`uploads/${publicId}`); // Adjust the folder path if necessary
+      }
+
+      // Delete the user
       await this.prisma.user.delete({
         where: {
           id,
@@ -159,10 +178,10 @@ export class UserService {
 
       return {
         message: 'User deleted successfully',
-      }
+      };
     } catch (e) {
+      console.error(e); // Log the error for debugging
       throw new HttpException('User not found', 404);
-      console.log(e);
     }
   }
 }
