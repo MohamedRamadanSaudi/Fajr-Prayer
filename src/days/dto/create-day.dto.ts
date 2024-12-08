@@ -14,5 +14,8 @@ export class CreateDayDto {
   wakeUp: boolean;
 
   @IsOptional()
+  prayInTheMosque?: boolean;
+
+  @IsOptional()
   photo?: any
 }

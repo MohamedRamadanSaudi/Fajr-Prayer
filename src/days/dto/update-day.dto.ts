@@ -2,9 +2,18 @@ import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateDayDto {
   @IsOptional()
-  photo?: any
+  @IsString()
+  userId: string;
 
   @IsOptional()
-  @IsString()
-  userId?: string
+  date?: Date;
+
+  @IsOptional()
+  wakeUp?: boolean;
+
+  @IsOptional()
+  prayInTheMosque?: boolean;
+
+  @IsOptional()
+  photo?: any
 }

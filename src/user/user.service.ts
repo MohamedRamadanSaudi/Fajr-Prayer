@@ -41,6 +41,7 @@ export class UserService {
             id: true,
             date: true,
             wakeUp: true,
+            prayInTheMosque: true,
             photo: true,
           }
         }
@@ -85,6 +86,7 @@ export class UserService {
             id: true,
             date: true,
             wakeUp: true,
+            prayInTheMosque: true,
             photo: true,
           }
         }

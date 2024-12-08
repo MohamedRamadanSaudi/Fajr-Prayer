@@ -43,7 +43,10 @@ export class DaysService {
       }
 
       let photoUrl = null;
-      let pointsIncrement = 10;
+      let pointsIncrement = 0;
+      if (createDayDto.wakeUp === true || String(createDayDto.wakeUp).toLowerCase() === "true") {
+        pointsIncrement = 10;
+      }
 
       // If a photo is provided, upload it to Cloudinary
       if (photo) {
@@ -67,6 +70,7 @@ export class DaysService {
       const userDay = await tx.userDay.create({
         data: {
           wakeUp: createDayDto.wakeUp === true || String(createDayDto.wakeUp).toLowerCase() === "true",
+          prayInTheMosque: createDayDto.prayInTheMosque === true || String(createDayDto.prayInTheMosque).toLowerCase() === "true",
           userId: createDayDto.userId,
           date: createDayDto.date,
           photo: photoUrl,
@@ -96,13 +100,13 @@ export class DaysService {
     }
   }
 
-  async update(id: string, body: UpdateDayDto, photo?: Express.Multer.File) {
+  async update(id: string, updateUserDto: UpdateDayDto, photo?: Express.Multer.File) {
     const photoUrl = await this.cloudinaryService.uploadImage(photo);
 
     return this.prisma.$transaction([
       this.prisma.user.update({
         where: {
-          id: body.userId,
+          id: updateUserDto.userId,
         },
         data: {
           points: {
@@ -116,6 +120,35 @@ export class DaysService {
         },
         data: {
           photo: photoUrl,
+        },
+      }),
+    ]);
+  }
+
+  async updateByAdmin(id: string, updateUserDto: UpdateDayDto, photo?: Express.Multer.File) {
+    const photoUrl = await this.cloudinaryService.uploadImage(photo);
+
+    return this.prisma.$transaction([
+      this.prisma.user.update({
+        where: {
+          id: updateUserDto.userId,
+        },
+        data: {
+          points: {
+            increment: 15,
+          },
+        },
+      }),
+      this.prisma.userDay.update({
+        where: {
+          id,
+        },
+        data: {
+          photo: photoUrl,
+          userId: updateUserDto.userId,
+          date: updateUserDto.date,
+          wakeUp: updateUserDto.wakeUp === true || String(updateUserDto.wakeUp).toLowerCase() === "true",
+          prayInTheMosque: updateUserDto.prayInTheMosque === true || String(updateUserDto.prayInTheMosque).toLowerCase() === "true",
         },
       }),
     ]);
@@ -153,6 +186,7 @@ export class DaysService {
           userId: user.id,
           date: today,
           wakeUp: false,
+          prayInTheMosque: false,
         },
       })
     );
@@ -161,10 +195,42 @@ export class DaysService {
     return Promise.all(userDayPromises);
   }
 
-  remove(id: string) {
-    return this.prisma.userDay.delete({
+  async remove(id: string) {
+    const day = await this.prisma.userDay.findFirst({
       where: { id },
     });
+
+    if (!day) {
+      throw new HttpException('Day not found', 404);
+    }
+    let pointsDecrement = 0;
+    if (day.photo) {
+      pointsDecrement = 25;
+    } else {
+      if (day.wakeUp) {
+        pointsDecrement = 10;
+      } else {
+        pointsDecrement = 0;
+      }
+    }
+
+    return this.prisma.$transaction([
+      this.prisma.user.update({
+        where: {
+          id: day.userId,
+        },
+        data: {
+          points: {
+            decrement: pointsDecrement,
+          },
+        },
+      }),
+      this.prisma.userDay.delete({
+        where: {
+          id,
+        },
+      }),
+    ]);
   }
 
 }
