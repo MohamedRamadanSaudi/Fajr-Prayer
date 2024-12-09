@@ -44,8 +44,10 @@ export class DaysService {
 
       let photoUrl = null;
       let pointsIncrement = 0;
+      let totalAmount = 5;
       if (createDayDto.wakeUp === true || String(createDayDto.wakeUp).toLowerCase() === "true") {
         pointsIncrement = 10;
+        totalAmount = 0;
       }
 
       // If a photo is provided, upload it to Cloudinary
@@ -62,6 +64,9 @@ export class DaysService {
         data: {
           points: {
             increment: pointsIncrement,
+          },
+          totalAmount: {
+            increment: totalAmount,
           },
         },
       });
