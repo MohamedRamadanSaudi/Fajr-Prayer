@@ -53,7 +53,7 @@ export class DaysService {
       // If a photo is provided, upload it to Cloudinary
       if (photo) {
         photoUrl = await this.cloudinaryService.uploadImage(photo);
-        pointsIncrement = 25; // Increment points by 25 if a photo is uploaded
+        pointsIncrement = 20; // Increment points by 20 if a photo is uploaded
       }
 
       // Increment user's points
@@ -112,62 +112,75 @@ export class DaysService {
     // If a photo is provided, upload it
     if (photo) {
       photoUrl = await this.cloudinaryService.uploadImage(photo);
+      // Use a transaction to update both the user and the userDay
+      return this.prisma.$transaction([
+        this.prisma.user.update({
+          where: {
+            id: updateUserDto.userId,
+          },
+          data: {
+            points: {
+              increment: 10,
+            },
+          },
+        }),
+        this.prisma.userDay.update({
+          where: {
+            id,
+          },
+          data: {
+            photo: photoUrl,
+            userId: updateUserDto.userId,
+            date: updateUserDto.date,
+            prayInTheMosque: updateUserDto.prayInTheMosque === true || String(updateUserDto.prayInTheMosque).toLowerCase() === "true",
+          },
+        }),
+      ]);
+    } else { // update without photo and without transaction
+      return this.prisma.userDay.update({
+        where: {
+          id,
+        },
+        data: {
+          userId: updateUserDto.userId,
+          date: updateUserDto.date,
+          prayInTheMosque: updateUserDto.prayInTheMosque === true || String(updateUserDto.prayInTheMosque).toLowerCase() === "true",
+        },
+      });
     }
-
-    // Use a transaction to update both the user and the userDay
-    return this.prisma.$transaction([
-      this.prisma.user.update({
-        where: {
-          id: updateUserDto.userId,
-        },
-        data: {
-          points: {
-            increment: 15,
-          },
-        },
-      }),
-      this.prisma.userDay.update({
-        where: {
-          id,
-        },
-        data: {
-          photo: photoUrl,
-          userId: updateUserDto.userId,
-          date: updateUserDto.date,
-          prayInTheMosque: updateUserDto.prayInTheMosque === true || String(updateUserDto.prayInTheMosque).toLowerCase() === "true",
-        },
-      }),
-    ]);
   }
 
-  async updateByAdmin(id: string, updateUserDto: UpdateDayDto, photo?: Express.Multer.File) {
-    const photoUrl = await this.cloudinaryService.uploadImage(photo);
+  // async updateByAdmin(id: string, updateUserDto: UpdateDayDto, photo?: Express.Multer.File) {
 
-    return this.prisma.$transaction([
-      this.prisma.user.update({
-        where: {
-          id: updateUserDto.userId,
-        },
-        data: {
-          points: {
-            increment: 15,
-          },
-        },
-      }),
-      this.prisma.userDay.update({
-        where: {
-          id,
-        },
-        data: {
-          photo: photoUrl,
-          userId: updateUserDto.userId,
-          date: updateUserDto.date,
-          wakeUp: updateUserDto.wakeUp === true || String(updateUserDto.wakeUp).toLowerCase() === "true",
-          prayInTheMosque: updateUserDto.prayInTheMosque === true || String(updateUserDto.prayInTheMosque).toLowerCase() === "true",
-        },
-      }),
-    ]);
-  }
+  //   return 'Delete the day and create a new one';
+
+  //   const photoUrl = await this.cloudinaryService.uploadImage(photo);
+
+  //   return this.prisma.$transaction([
+  //     this.prisma.user.update({
+  //       where: {
+  //         id: updateUserDto.userId,
+  //       },
+  //       data: {
+  //         points: {
+  //           increment: 10,
+  //         },
+  //       },
+  //     }),
+  //     this.prisma.userDay.update({
+  //       where: {
+  //         id,
+  //       },
+  //       data: {
+  //         photo: photoUrl,
+  //         userId: updateUserDto.userId,
+  //         date: updateUserDto.date,
+  //         wakeUp: updateUserDto.wakeUp === true || String(updateUserDto.wakeUp).toLowerCase() === "true",
+  //         prayInTheMosque: updateUserDto.prayInTheMosque === true || String(updateUserDto.prayInTheMosque).toLowerCase() === "true",
+  //       },
+  //     }),
+  //   ]);
+  // }
 
   // Create default UserDay for users who haven't created it yet by Sunrise
   async createDefaultUserDays() {
@@ -220,7 +233,7 @@ export class DaysService {
     }
     let pointsDecrement = 0;
     if (day.photo) {
-      pointsDecrement = 25;
+      pointsDecrement = 20;
     } else {
       if (day.wakeUp) {
         pointsDecrement = 10;
