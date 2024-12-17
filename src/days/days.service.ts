@@ -106,8 +106,15 @@ export class DaysService {
   }
 
   async update(id: string, updateUserDto: UpdateDayDto, photo?: Express.Multer.File) {
-    const photoUrl = await this.cloudinaryService.uploadImage(photo);
+    // Initialize photoUrl as undefined
+    let photoUrl: string | undefined;
 
+    // If a photo is provided, upload it
+    if (photo) {
+      photoUrl = await this.cloudinaryService.uploadImage(photo);
+    }
+
+    // Use a transaction to update both the user and the userDay
     return this.prisma.$transaction([
       this.prisma.user.update({
         where: {
@@ -125,6 +132,9 @@ export class DaysService {
         },
         data: {
           photo: photoUrl,
+          userId: updateUserDto.userId,
+          date: updateUserDto.date,
+          prayInTheMosque: updateUserDto.prayInTheMosque === true || String(updateUserDto.prayInTheMosque).toLowerCase() === "true",
         },
       }),
     ]);

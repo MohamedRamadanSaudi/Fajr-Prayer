@@ -47,8 +47,8 @@ export class DaysController {
   @UseInterceptors(FileInterceptor('photo'))
   update(
     @Param('id') id: string,
-    @UploadedFile() photo: Express.Multer.File,
     @Body() body: UpdateDayDto,
+    @UploadedFile() photo?: Express.Multer.File,
   ) {
     return this.daysService.update(id, body, photo);
   }
