@@ -55,6 +55,9 @@ export class UserService {
       where: {
         username,
       },
+      include: {
+        UserDay: true,
+      }
     });
 
     const users = await this.prisma.user.findMany({
