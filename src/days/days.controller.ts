@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseInterceptors, UploadedFile, UseGuards, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseInterceptors, UploadedFile, UseGuards, Delete, Req } from '@nestjs/common';
 import { DaysService } from './days.service';
 import { CreateDayDto } from './dto/create-day.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -11,8 +11,8 @@ export class DaysController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createDayDto: CreateDayDto) {
-    return this.daysService.create(createDayDto);
+  create(@Req() req: any) {
+    return this.daysService.create(req.user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -48,9 +48,10 @@ export class DaysController {
   update(
     @Param('id') id: string,
     @Body() body: UpdateDayDto,
+    @Req() req: any,
     @UploadedFile() photo?: Express.Multer.File,
   ) {
-    return this.daysService.update(id, body, photo);
+    return this.daysService.update(id, body, req.user.sub, photo);
   }
 
   @UseGuards(JwtAuthGuard)

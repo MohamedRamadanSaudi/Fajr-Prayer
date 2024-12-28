@@ -10,12 +10,14 @@ export class DaysService {
     private readonly cloudinaryService: CloudinaryService,
   ) { }
 
-  create(createDayDto: CreateDayDto) {
+  create(userId: string) {
+    // get the date of today like this 2024-12-18T00:00:00.000Z
+    const today = new Date(new Date().setHours(0, 0, 0, 0) + 2 * 60 * 60 * 1000);
     // Increment the points of the user that his id in createDayDto by 10 points then create a new userDay
     return this.prisma.$transaction([
       this.prisma.user.update({
         where: {
-          id: createDayDto.userId,
+          id: userId,
         },
         data: {
           points: {
@@ -24,7 +26,11 @@ export class DaysService {
         },
       }),
       this.prisma.userDay.create({
-        data: createDayDto,
+        data: {
+          userId,
+          wakeUp: true,
+          date: today,
+        },
       }),
     ]);
   }
@@ -105,7 +111,7 @@ export class DaysService {
     }
   }
 
-  async update(id: string, updateUserDto: UpdateDayDto, photo?: Express.Multer.File) {
+  async update(id: string, updateUserDto: UpdateDayDto, userId: string, photo?: Express.Multer.File) {
     // Initialize photoUrl as undefined
     let photoUrl: string | undefined;
 
@@ -116,7 +122,7 @@ export class DaysService {
       return this.prisma.$transaction([
         this.prisma.user.update({
           where: {
-            id: updateUserDto.userId,
+            id: userId,
           },
           data: {
             points: {
@@ -130,7 +136,7 @@ export class DaysService {
           },
           data: {
             photo: photoUrl,
-            userId: updateUserDto.userId,
+            userId: userId,
             date: updateUserDto.date,
             prayInTheMosque: updateUserDto.prayInTheMosque === true || String(updateUserDto.prayInTheMosque).toLowerCase() === "true",
           },

@@ -1,17 +1,17 @@
-import { IsNotEmpty, IsString, IsBoolean, IsDate, IsOptional } from 'class-validator';
+import { IsString, IsBoolean, IsDate, IsOptional } from 'class-validator';
 
 export class CreateDayDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  userId: string;
+  userId?: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsDate()
-  date: Date;
+  date?: Date;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsBoolean()
-  wakeUp: boolean;
+  wakeUp?: boolean;
 
   @IsOptional()
   prayInTheMosque?: boolean;
