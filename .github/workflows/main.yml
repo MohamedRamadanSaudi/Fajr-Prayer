@@ -17,6 +17,8 @@ jobs:
         with:
           node-version: 18
       - name: provision database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npx prisma db push
       - name: Install dependencies
         run: |
@@ -26,7 +28,6 @@ jobs:
         run: npm run build
       - name: restart server
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
           PORT: ${{ secrets.PORT }}
           ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
