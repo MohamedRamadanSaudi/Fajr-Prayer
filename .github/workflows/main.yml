@@ -1,0 +1,30 @@
+name: self-server deployer
+
+on:
+  push:
+    branches: [master]
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: provision database
+        run: npx prisma db push
+      - name: Install dependencies
+        run: |
+          cd server
+          npm install
+      - name: Build
+        run: npm run build
+      - name: restart server
+        run: |
+          cd server
+          npm run start:prod
