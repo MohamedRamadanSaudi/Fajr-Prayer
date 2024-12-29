@@ -21,9 +21,7 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npx prisma db push
       - name: Install dependencies
-        run: |
-          cd server
-          npm install
+        run: npm install
       - name: Build
         run: npm run build
       - name: restart server
@@ -34,6 +32,4 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-        run: |
-          cd server
-          npm run start:prod
+        run: npm run start:prod
