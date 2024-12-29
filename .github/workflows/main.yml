@@ -12,31 +12,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-
-      - name: Install PM2 if not available
-        run: |
-          if ! command -v pm2 &> /dev/null; then
-            npm install -g pm2
-          fi
-          echo "$(npm root -g)/pm2" >> $GITHUB_PATH
-
-      - name: Provision Database
+      - name: provision database
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: npx prisma db push
-
-      - name: Install Dependencies
+      - name: Install dependencies
         run: npm install
-
       - name: Build
         run: npm run build
-
-      - name: Restart Server
+      - name: restart server
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
@@ -45,4 +33,4 @@ jobs:
           CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
           CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
           CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-        run: pm2 restart ${{ secrets.PM2_PROCESS_NAME }}
+        run: npm run start
