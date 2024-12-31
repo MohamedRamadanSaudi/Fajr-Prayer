@@ -19,7 +19,7 @@ jobs:
           username: ${{ secrets.USER }}
           password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            cd ./backend
+            cd ./Fajr-Prayer
 
             git pull origin main
 
@@ -29,6 +29,6 @@ jobs:
 
             npm run build
 
-            pm2 restart backend --silent
+            pm2 restart nestapp --silent
 
             echo "Deployment successful"
