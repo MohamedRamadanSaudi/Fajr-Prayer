@@ -32,6 +32,14 @@ export class UserController {
     return this.userService.getMe(username);
   }
 
+  // remove all user's days
+  @Delete(':id/days')
+  removeAllDays(
+    @Param('id') id: string
+  ) {
+    return this.userService.removeAllDays(id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.userService.findOne(id);

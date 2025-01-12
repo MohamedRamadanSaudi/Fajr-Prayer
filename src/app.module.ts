@@ -9,13 +9,16 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { UserModule } from './user/user.module';
 import { DaysModule } from './days/days.module';
 import { LoggerMiddleware } from './logger/logger.middleware';
+// import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
     MulterModule.register({
       dest: './uploads',
     }),
-    AdminModule, AuthModule, CloudinaryModule, UserModule, DaysModule],
+    AdminModule, AuthModule, CloudinaryModule, UserModule, DaysModule,
+    // ScheduleModule.forRoot(),
+  ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
   exports: [PrismaService],

@@ -3,6 +3,8 @@ import { CreateDayDto } from './dto/create-day.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UpdateDayDto } from './dto/update-day.dto';
+import * as moment from 'moment-timezone';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class DaysService {
@@ -10,10 +12,21 @@ export class DaysService {
     private readonly cloudinaryService: CloudinaryService,
   ) { }
 
+  // Helper function to get the current date in Cairo time zone
+  private getCurrentDateInCairo(): Date {
+    return moment().tz('Africa/Cairo').toDate();
+  }
+
+  // Helper function to convert a date to Cairo time zone
+  private convertToCairoTime(date: Date): Date {
+    return moment(date).tz('Africa/Cairo').toDate();
+  }
+
   create(userId: string) {
-    // get the date of today like this 2024-12-18T00:00:00.000Z
-    const today = new Date(new Date().setHours(0, 0, 0, 0) + 2 * 60 * 60 * 1000);
-    // Increment the points of the user that his id in createDayDto by 10 points then create a new userDay
+    // Get the current date in Cairo time zone
+    const today = this.getCurrentDateInCairo();
+
+    // Increment the points of the user and create a new userDay
     return this.prisma.$transaction([
       this.prisma.user.update({
         where: {
@@ -77,13 +90,16 @@ export class DaysService {
         },
       });
 
+      // Convert the date to Cairo time zone
+      const cairoDate = this.convertToCairoTime(createDayDto.date);
+
       // Create a new userDay entry
       const userDay = await tx.userDay.create({
         data: {
           wakeUp: createDayDto.wakeUp === true || String(createDayDto.wakeUp).toLowerCase() === "true",
           prayInTheMosque: createDayDto.prayInTheMosque === true || String(createDayDto.prayInTheMosque).toLowerCase() === "true",
           userId: createDayDto.userId,
-          date: createDayDto.date,
+          date: cairoDate,
           photo: photoUrl,
         },
       });
@@ -156,43 +172,11 @@ export class DaysService {
     }
   }
 
-  // async updateByAdmin(id: string, updateUserDto: UpdateDayDto, photo?: Express.Multer.File) {
-
-  //   return 'Delete the day and create a new one';
-
-  //   const photoUrl = await this.cloudinaryService.uploadImage(photo);
-
-  //   return this.prisma.$transaction([
-  //     this.prisma.user.update({
-  //       where: {
-  //         id: updateUserDto.userId,
-  //       },
-  //       data: {
-  //         points: {
-  //           increment: 10,
-  //         },
-  //       },
-  //     }),
-  //     this.prisma.userDay.update({
-  //       where: {
-  //         id,
-  //       },
-  //       data: {
-  //         photo: photoUrl,
-  //         userId: updateUserDto.userId,
-  //         date: updateUserDto.date,
-  //         wakeUp: updateUserDto.wakeUp === true || String(updateUserDto.wakeUp).toLowerCase() === "true",
-  //         prayInTheMosque: updateUserDto.prayInTheMosque === true || String(updateUserDto.prayInTheMosque).toLowerCase() === "true",
-  //       },
-  //     }),
-  //   ]);
-  // }
-
   // Create default UserDay for users who haven't created it yet by Sunrise
   async createDefaultUserDays() {
-    const today = new Date();
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    const today = this.getCurrentDateInCairo();
+    const startOfDay = moment(today).startOf('day').toDate();
+    const endOfDay = moment(today).endOf('day').toDate();
 
     const users = await this.prisma.user.findMany({
       where: {
@@ -225,8 +209,80 @@ export class DaysService {
       })
     );
 
-
     return Promise.all(userDayPromises);
+  }
+
+  // Create default UserDay for users who haven't created it yet by Sunrise
+  @Cron('0 53 06 * * *', {
+    timeZone: 'Africa/Cairo'
+  })
+  async createDefaultUserDaysAutomatically() {
+    // Get the current date in Cairo time zone
+    const now = moment().tz('Africa/Cairo');
+    const startOfDay = now.clone().startOf('day').toDate(); // Start of day in Cairo time zone
+    const endOfDay = now.clone().endOf('day').toDate(); // End of day in Cairo time zone
+
+    console.log('Debug timestamps:');
+    console.log('Now (Cairo):', now.format('YYYY-MM-DDTHH:mm:ssZ'));
+    console.log('Start of day (Cairo):', moment(startOfDay).tz('Africa/Cairo').format('YYYY-MM-DDTHH:mm:ssZ'));
+    console.log('End of day (Cairo):', moment(endOfDay).tz('Africa/Cairo').format('YYYY-MM-DDTHH:mm:ssZ'));
+
+    // First check if there are any users at all
+    const allUsers = await this.prisma.user.findMany();
+    console.log('Total users in system:', allUsers.length);
+
+    // Then check users without days for today
+    const users = await this.prisma.user.findMany({
+      where: {
+        UserDay: {
+          none: {
+            date: {
+              gte: startOfDay,
+              lte: endOfDay,
+            },
+          },
+        },
+      },
+      include: {
+        UserDay: true,
+      },
+    });
+
+    console.log('Users without days for today:', users.length);
+    if (users.length === 0) {
+      const existingEntries = await this.prisma.userDay.findMany({
+        where: {
+          date: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+      });
+      console.log('Existing entries for today:', existingEntries.length);
+    }
+
+    // Create default UserDay entries for users without one for today
+    const userDayPromises = users.map((user) =>
+      this.prisma.userDay.upsert({
+        where: {
+          userId_date: {
+            userId: user.id,
+            date: startOfDay, // Use startOfDay for consistency
+          },
+        },
+        update: {},
+        create: {
+          userId: user.id,
+          date: startOfDay, // Use startOfDay for consistency
+          wakeUp: false,
+          prayInTheMosque: false,
+        },
+      })
+    );
+
+    const result = await Promise.all(userDayPromises);
+    console.log('Created default user days:', result.length);
+    return result;
   }
 
   async remove(id: string) {
