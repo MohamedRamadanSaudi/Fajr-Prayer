@@ -14,7 +14,7 @@ export class DaysService {
 
   // Helper function to get the current date in Cairo time zone
   private getCurrentDateInCairo(): Date {
-    return moment().tz('Africa/Cairo').toDate();
+    return moment().tz('Africa/Cairo').startOf('day').toDate();
   }
 
   // Helper function to convert a date to Cairo time zone
@@ -212,77 +212,18 @@ export class DaysService {
     return Promise.all(userDayPromises);
   }
 
-  // Create default UserDay for users who haven't created it yet by Sunrise
-  @Cron('0 53 06 * * *', {
-    timeZone: 'Africa/Cairo'
+  // Cron job to create default UserDay for users at 6:50 AM Cairo time
+  @Cron('50 6 * * *', {
+    timeZone: 'Africa/Cairo',
   })
   async createDefaultUserDaysAutomatically() {
-    // Get the current date in Cairo time zone
-    const now = moment().tz('Africa/Cairo');
-    const startOfDay = now.clone().startOf('day').toDate(); // Start of day in Cairo time zone
-    const endOfDay = now.clone().endOf('day').toDate(); // End of day in Cairo time zone
-
-    console.log('Debug timestamps:');
-    console.log('Now (Cairo):', now.format('YYYY-MM-DDTHH:mm:ssZ'));
-    console.log('Start of day (Cairo):', moment(startOfDay).tz('Africa/Cairo').format('YYYY-MM-DDTHH:mm:ssZ'));
-    console.log('End of day (Cairo):', moment(endOfDay).tz('Africa/Cairo').format('YYYY-MM-DDTHH:mm:ssZ'));
-
-    // First check if there are any users at all
-    const allUsers = await this.prisma.user.findMany();
-    console.log('Total users in system:', allUsers.length);
-
-    // Then check users without days for today
-    const users = await this.prisma.user.findMany({
-      where: {
-        UserDay: {
-          none: {
-            date: {
-              gte: startOfDay,
-              lte: endOfDay,
-            },
-          },
-        },
-      },
-      include: {
-        UserDay: true,
-      },
-    });
-
-    console.log('Users without days for today:', users.length);
-    if (users.length === 0) {
-      const existingEntries = await this.prisma.userDay.findMany({
-        where: {
-          date: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
-        },
-      });
-      console.log('Existing entries for today:', existingEntries.length);
+    console.log("Starting cron job to create default UserDays for users.");
+    try {
+      await this.createDefaultUserDays();
+      console.log("Default UserDays created successfully.");
+    } catch (error) {
+      console.error("Error creating default UserDays:", error);
     }
-
-    // Create default UserDay entries for users without one for today
-    const userDayPromises = users.map((user) =>
-      this.prisma.userDay.upsert({
-        where: {
-          userId_date: {
-            userId: user.id,
-            date: startOfDay, // Use startOfDay for consistency
-          },
-        },
-        update: {},
-        create: {
-          userId: user.id,
-          date: startOfDay, // Use startOfDay for consistency
-          wakeUp: false,
-          prayInTheMosque: false,
-        },
-      })
-    );
-
-    const result = await Promise.all(userDayPromises);
-    console.log('Created default user days:', result.length);
-    return result;
   }
 
   async remove(id: string) {
