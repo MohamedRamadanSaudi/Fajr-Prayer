@@ -11,7 +11,10 @@ export class CloudinaryService {
   async uploadImage(file: Express.Multer.File): Promise<string> {
     return new Promise((resolve, reject) => {
       const upload = cloudinary.uploader.upload_stream(
-        { folder: 'uploads' },
+        {
+          folder: 'uploads',
+          quality: 'auto:low',
+        },
         (error, result) => {
           if (error) return reject(error);
           resolve(result.secure_url);
@@ -24,7 +27,7 @@ export class CloudinaryService {
 
   async deleteImage(publicId: string): Promise<void> {
     return new Promise((resolve, reject) => {
-      cloudinary.uploader.destroy(publicId, (error, result) => {
+      cloudinary.uploader.destroy(publicId, (error) => {
         if (error) return reject(error);
         resolve();
       });
