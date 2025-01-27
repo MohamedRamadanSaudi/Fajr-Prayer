@@ -198,14 +198,24 @@ export class DaysService {
     );
 
     const userDayPromises = usersNeedingEntry.map((user) =>
-      this.prisma.userDay.create({
-        data: {
-          userId: user.id,
-          date: today,
-          wakeUp: false,
-          prayInTheMosque: false,
-        },
-      })
+      this.prisma.$transaction([
+        // Update the user's totalAmount if wakeUp is false
+        this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            totalAmount: { increment: 5 }, // Increment totalAmount by 5
+          },
+        }),
+        // Create the default UserDay entry
+        this.prisma.userDay.create({
+          data: {
+            userId: user.id,
+            date: today,
+            wakeUp: false,
+            prayInTheMosque: false,
+          },
+        }),
+      ])
     );
 
     return Promise.all(userDayPromises);
