@@ -152,28 +152,17 @@ export class UserService {
     return result;
   }
 
-  async removeAllDays(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: {
-        id,
-      },
-      select: {
-        id: true,
+  async resetAllData() {
+    // remove all user days and reset the points and total amount
+    await this.prisma.userDay.deleteMany({});
+    await this.prisma.user.updateMany({
+      data: {
+        points: 0,
+        totalAmount: 0,
       }
     });
-
-    if (!user) {
-      throw new HttpException('User not found', 404);
-    }
-
-    await this.prisma.userDay.deleteMany({
-      where: {
-        userId: user.id,
-      },
-    });
-
     return {
-      message: 'All days removed successfully',
+      message: 'All data reset successfully',
     };
   }
 

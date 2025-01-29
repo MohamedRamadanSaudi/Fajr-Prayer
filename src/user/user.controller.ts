@@ -33,11 +33,9 @@ export class UserController {
   }
 
   // remove all user's days
-  @Delete(':id/days')
-  removeAllDays(
-    @Param('id') id: string
-  ) {
-    return this.userService.removeAllDays(id);
+  @Delete('reset-all-data')
+  resetAllData() {
+    return this.userService.resetAllData();
   }
 
   @Get(':id')
