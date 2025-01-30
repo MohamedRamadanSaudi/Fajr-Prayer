@@ -53,10 +53,7 @@ export class UserService {
     return users.map(user => ({
       ...user,
       photo: user.photo || defaultPhotoURL,
-      UserDay: user.UserDay.map(day => ({
-        ...day,
-        photo: day.photo || defaultPhotoURL,
-      }))
+      UserDay: user.UserDay,
     }));
   }
 
@@ -88,10 +85,7 @@ export class UserService {
     return {
       ...user,
       photo: user.photo || defaultPhotoURL,
-      UserDay: user.UserDay.map(day => ({
-        ...day,
-        photo: day.photo || defaultPhotoURL,
-      })),
+      UserDay: user.UserDay,
       rank,
     };
   }
@@ -135,10 +129,7 @@ export class UserService {
     return {
       ...user,
       photo: user.photo || defaultPhotoURL,
-      UserDay: user.UserDay.map(day => ({
-        ...day,
-        photo: day.photo || defaultPhotoURL,
-      })),
+      UserDay: user.UserDay,
       rank,
     };
   }
