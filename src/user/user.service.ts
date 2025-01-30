@@ -25,8 +25,8 @@ export class UserService {
     });
   }
 
-  findAll() {
-    return this.prisma.user.findMany({
+  async findAll() {
+    const users = await this.prisma.user.findMany({
       orderBy: {
         points: 'desc',
       },
@@ -47,6 +47,17 @@ export class UserService {
         }
       }
     });
+
+    // Replace null or undefined photo with the default photo path
+    const defaultPhotoURL = `${process.env.DEFAULT_PHOTO_URL}/default.png`;
+    return users.map(user => ({
+      ...user,
+      photo: user.photo || defaultPhotoURL,
+      UserDay: user.UserDay.map(day => ({
+        ...day,
+        photo: day.photo || defaultPhotoURL,
+      }))
+    }));
   }
 
   // get the current user form the token
@@ -60,6 +71,10 @@ export class UserService {
       }
     });
 
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+
     const users = await this.prisma.user.findMany({
       orderBy: {
         points: 'desc',
@@ -68,8 +83,15 @@ export class UserService {
 
     const rank = users.findIndex((u) => u.id === user.id) + 1;
 
+    // Replace null or undefined photo with the default photo path
+    const defaultPhotoURL = `${process.env.DEFAULT_PHOTO_URL}/default.png`;
     return {
       ...user,
+      photo: user.photo || defaultPhotoURL,
+      UserDay: user.UserDay.map(day => ({
+        ...day,
+        photo: day.photo || defaultPhotoURL,
+      })),
       rank,
     };
   }
@@ -108,9 +130,16 @@ export class UserService {
 
     const rank = users.findIndex((u) => u.id === user.id) + 1;
 
+    // Replace null or undefined photo with the default photo path
+    const defaultPhotoURL = `${process.env.DEFAULT_PHOTO_URL}/default.png`;
     return {
-      rank,
       ...user,
+      photo: user.photo || defaultPhotoURL,
+      UserDay: user.UserDay.map(day => ({
+        ...day,
+        photo: day.photo || defaultPhotoURL,
+      })),
+      rank,
     };
   }
 
