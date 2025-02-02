@@ -174,18 +174,36 @@ export class UserService {
 
   async resetAllData() {
     // remove all user days and reset the points and total amount
-    await this.prisma.userDay.deleteMany({});
-    await this.prisma.user.updateMany({
-      data: {
-        points: 0,
-        totalAmount: 0,
+
+    // get all user days photos and delete it in cloudinary
+    const userDays = await this.prisma.userDay.findMany({
+      select: {
+        photo: true,
       }
     });
-    return {
-      message: 'All data reset successfully',
-    };
-  }
 
+    for (const userDay of userDays) {
+      if (userDay.photo) {
+        const urlParts = userDay.photo.split('/'); // Split the URL
+        const publicIdWithExtension = urlParts[urlParts.length - 1]; // Get the last part
+        const publicId = parse(publicIdWithExtension).name; // Remove the file extension
+
+        await this.cloudinaryService.deleteImage(`uploads/${publicId}`); // Adjust the folder path if necessary
+      }
+
+      await this.prisma.userDay.deleteMany({});
+
+      await this.prisma.user.updateMany({
+        data: {
+          points: 0,
+          totalAmount: 0,
+        }
+      });
+      return {
+        message: 'All data reset successfully',
+      };
+    }
+  }
   async remove(id: string) {
     try {
       // Delete related user days
