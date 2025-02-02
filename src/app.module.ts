@@ -12,6 +12,7 @@ import { LoggerMiddleware } from './logger/logger.middleware';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 // import { ScheduleModule } from '@nestjs/schedule';
+import { GiftModule } from './gift/gift.module';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { join } from 'path';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'), // Path to your public folder
     }),
-    AdminModule, AuthModule, CloudinaryModule, UserModule, DaysModule,
+    AdminModule, AuthModule, CloudinaryModule, UserModule, DaysModule, GiftModule,
     // ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
