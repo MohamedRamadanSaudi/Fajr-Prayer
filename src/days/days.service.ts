@@ -145,6 +145,18 @@ export class DaysService {
 
     // If a photo is provided, upload it
     if (photo) {
+      // check if the day has a photo already
+      const day = await this.prisma.userDay.findFirst({
+        where: { id },
+      });
+
+      if (!day) {
+        throw new HttpException('Day not found', 404);
+      }
+
+      if (day.photo) {
+        throw new HttpException('Day already has a photo', 400);
+      }
       photoUrl = await this.fileService.saveFile(photo);
       // Use a transaction to update both the user and the userDay
       return this.prisma.$transaction([
