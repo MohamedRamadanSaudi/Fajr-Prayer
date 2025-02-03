@@ -1,15 +1,16 @@
 import { HttpException, Injectable } from '@nestjs/common';
 import { CreateDayDto } from './dto/create-day.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { FileService } from 'src/common/services/file.service';
 import { UpdateDayDto } from './dto/update-day.dto';
 import * as moment from 'moment-timezone';
 import { Cron } from '@nestjs/schedule';
+import * as path from 'path';
 
 @Injectable()
 export class DaysService {
   constructor(private readonly prisma: PrismaService,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly fileService: FileService,
   ) { }
 
   // Helper function to get the current date in Cairo time zone (date only)
@@ -92,7 +93,7 @@ export class DaysService {
       }
 
       if (photo) {
-        photoUrl = await this.cloudinaryService.uploadImage(photo);
+        photoUrl = await this.fileService.saveFile(photo);
         pointsIncrement = 20;
       }
 
@@ -144,7 +145,7 @@ export class DaysService {
 
     // If a photo is provided, upload it
     if (photo) {
-      photoUrl = await this.cloudinaryService.uploadImage(photo);
+      photoUrl = await this.fileService.saveFile(photo);
       // Use a transaction to update both the user and the userDay
       return this.prisma.$transaction([
         this.prisma.user.update({
@@ -245,6 +246,11 @@ export class DaysService {
     let pointsDecrement = 0;
     if (day.photo) {
       pointsDecrement = 20;
+      const urlParts = day.photo.split('/'); // Split the URL
+      const fileName = urlParts[urlParts.length - 1]; // Get the file name with extension
+      const filePath = path.join(__dirname, '..', '..', 'uploads', fileName); // Full path
+
+      await this.fileService.deleteFile(filePath); // Ensure correct path
     } else {
       if (day.wakeUp) {
         pointsDecrement = 10;

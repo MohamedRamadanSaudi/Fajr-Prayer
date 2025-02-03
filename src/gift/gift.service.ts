@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { UpdateGiftDto } from './dto/update-gift.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { parse } from 'path';
+import { FileService } from 'src/common/services/file.service';
+import * as path from 'path';
 
 @Injectable()
 export class GiftService {
 
   constructor(private readonly prisma: PrismaService,
-    private readonly cloudinaryService: CloudinaryService,
+    private readonly fileService: FileService,
   ) { }
 
   async create() {
@@ -46,14 +46,14 @@ export class GiftService {
 
     let photoUrl: string;
     if (photo) {
-      photoUrl = await this.cloudinaryService.uploadImage(photo);
+      photoUrl = await this.fileService.saveFile(photo);
 
       if (result.photo) {
         const urlParts = result.photo.split('/'); // Split the URL
-        const publicIdWithExtension = urlParts[urlParts.length - 1]; // Get the last part
-        const publicId = parse(publicIdWithExtension).name; // Remove the file extension
+        const fileName = urlParts[urlParts.length - 1]; // Get the file name with extension
+        const filePath = path.join(__dirname, '..', '..', 'uploads', fileName); // Full path
 
-        await this.cloudinaryService.deleteImage(`uploads/${publicId}`); // Adjust the folder path if necessary
+        await this.fileService.deleteFile(filePath); // Ensure correct path
       }
     }
 
