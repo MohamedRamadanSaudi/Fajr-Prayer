@@ -58,6 +58,29 @@ export class UserService {
     }));
   }
 
+  async getLeaderboard() {
+    const users = await this.prisma.user.findMany({
+      orderBy: {
+        points: 'desc',
+      },
+      select: {
+        id: true,
+        name: true,
+        photo: true,
+        points: true,
+      }
+    });
+
+    // Replace null or undefined photo with the default photo path
+    const defaultPhotoURL = `${process.env.DEFAULT_PHOTO_URL}/default.png`;
+    return users.map(user => ({
+      ...user,
+      photo: user.photo || defaultPhotoURL,
+      rank: users.findIndex(u => u.id === user.id) + 1,
+    }));
+
+  }
+
   // get the current user form the token
   async getMe(username: string) {
     const user = await this.prisma.user.findUnique({
