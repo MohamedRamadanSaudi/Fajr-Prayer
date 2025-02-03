@@ -56,10 +56,6 @@ This project is a personal initiative to encourage accountability and consistenc
 
   - A cron job automatically creates default entries for users who haven't logged their attendance by sunrise.
 
-- **Image Upload**:
-
-  - Integration with **Cloudinary** for handling profile photos and proof images.
-
 - **Database**:
   - **MongoDB** for storing user and prayer data.
   - **Prisma** as the ORM for database management.
@@ -73,7 +69,6 @@ This project is a personal initiative to encourage accountability and consistenc
   - [NestJS](https://nestjs.com/) - A progressive Node.js framework for building efficient and scalable server-side applications.
   - [Prisma](https://www.prisma.io/) - A modern database toolkit for TypeScript and Node.js.
   - [MongoDB](https://www.mongodb.com/) - A NoSQL database used for storing user and prayer data.
-  - [Cloudinary](https://cloudinary.com/) - A cloud-based image and video management service for handling profile photos and proof images.
 
 - **Authentication**:
 
@@ -95,7 +90,6 @@ This project is a personal initiative to encourage accountability and consistenc
 - Node.js (v18.x)
 - npm (v9.x)
 - MongoDB database
-- Cloudinary account (for image uploads)
 
 ### Installation
 
@@ -118,11 +112,10 @@ This project is a personal initiative to encourage accountability and consistenc
    ```env
    DATABASE_URL=mongodb://your-mongodb-connection-string
    JWT_SECRET=your-jwt-secret-key
+   PORT= 3000
    ADMIN_PASSWORD=your-admin-password
-   CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
-   CLOUDINARY_API_KEY=your-cloudinary-api-key
-   CLOUDINARY_API_SECRET=your-cloudinary-api-secret
    DEFAULT_PHOTO_URL=your-default-photo-url
+   URL= "http://localhost:3000"
    ```
 
 4. **Run database migrations**:
