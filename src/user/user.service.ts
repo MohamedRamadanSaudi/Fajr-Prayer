@@ -2,19 +2,20 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
-import { parse } from 'path';
+import { FileService } from 'src/common/services/file.service';
+import * as path from 'path';
 
 @Injectable()
 export class UserService {
-  constructor(private readonly prisma: PrismaService,
-    private readonly cloudinaryService: CloudinaryService,
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly fileService: FileService,
   ) { }
 
   async create(createUserDto: CreateUserDto, photo?: Express.Multer.File) {
     let photoUrl = null;
     if (photo) {
-      photoUrl = await this.cloudinaryService.uploadImage(photo);
+      photoUrl = await this.fileService.saveFile(photo);
     }
 
     return this.prisma.user.create({
@@ -145,17 +146,18 @@ export class UserService {
       throw new HttpException('User not found', 404);
     }
 
+    // Delete old photo if it exists
     if (user?.photo) {
       const urlParts = user.photo.split('/'); // Split the URL
-      const publicIdWithExtension = urlParts[urlParts.length - 1]; // Get the last part
-      const publicId = parse(publicIdWithExtension).name; // Remove the file extension
+      const fileName = urlParts[urlParts.length - 1]; // Get the file name with extension
+      const filePath = path.join(__dirname, '..', '..', 'uploads', fileName); // Full path
 
-      await this.cloudinaryService.deleteImage(`uploads/${publicId}`); // Adjust the folder path if necessary
+      await this.fileService.deleteFile(filePath); // Ensure correct path
     }
 
     let photoUrl: string;
     if (photo) {
-      photoUrl = await this.cloudinaryService.uploadImage(photo);
+      photoUrl = await this.fileService.saveFile(photo);
     }
 
     updateUserDto.points = Number(updateUserDto.points);
@@ -164,7 +166,7 @@ export class UserService {
     const result = await this.prisma.user.update({
       where: { id },
       data: {
-        photo: photoUrl,
+        photo: photoUrl || user.photo,
         ...updateUserDto,
       },
     });
@@ -175,7 +177,7 @@ export class UserService {
   async resetAllData() {
     // remove all user days and reset the points and total amount
 
-    // get all user days photos and delete it in cloudinary
+    // get all user days photos and delete it 
     const userDays = await this.prisma.userDay.findMany({
       select: {
         photo: true,
@@ -184,11 +186,12 @@ export class UserService {
 
     for (const userDay of userDays) {
       if (userDay.photo) {
-        const urlParts = userDay.photo.split('/'); // Split the URL
-        const publicIdWithExtension = urlParts[urlParts.length - 1]; // Get the last part
-        const publicId = parse(publicIdWithExtension).name; // Remove the file extension
 
-        await this.cloudinaryService.deleteImage(`uploads/${publicId}`); // Adjust the folder path if necessary
+        const urlParts = userDay.photo.split('/'); // Split the URL
+        const fileName = urlParts[urlParts.length - 1]; // Get the file name with extension
+        const filePath = path.join(__dirname, '..', '..', 'uploads', fileName); // Full path
+
+        await this.fileService.deleteFile(filePath); // Ensure correct path
       }
 
       await this.prisma.userDay.deleteMany({});
@@ -217,13 +220,13 @@ export class UserService {
         where: { id },
         select: { photo: true },
       });
-      // If the photo URL exists, extract the public ID and delete the photo
+      // Delete old photo if it exists
       if (user?.photo) {
         const urlParts = user.photo.split('/'); // Split the URL
-        const publicIdWithExtension = urlParts[urlParts.length - 1]; // Get the last part
-        const publicId = parse(publicIdWithExtension).name; // Remove the file extension
+        const fileName = urlParts[urlParts.length - 1]; // Get the file name with extension
+        const filePath = path.join(__dirname, '..', '..', 'uploads', fileName); // Full path
 
-        await this.cloudinaryService.deleteImage(`uploads/${publicId}`); // Adjust the folder path if necessary
+        await this.fileService.deleteFile(filePath); // Ensure correct path
       }
 
       // Delete the user
