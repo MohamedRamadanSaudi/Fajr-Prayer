@@ -24,6 +24,11 @@ export class UserController {
     return this.userService.findAll();
   }
 
+  @Get('leaderboard')
+  getLeaderboard() {
+    return this.userService.getLeaderboard();
+  }
+
   @Get('me')
   getMe(
     @Req() req: any
