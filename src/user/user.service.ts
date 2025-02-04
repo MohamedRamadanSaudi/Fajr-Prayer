@@ -169,18 +169,17 @@ export class UserService {
       throw new HttpException('User not found', 404);
     }
 
-    // Delete old photo if it exists
-    if (user?.photo) {
-      const urlParts = user.photo.split('/'); // Split the URL
-      const fileName = urlParts[urlParts.length - 1]; // Get the file name with extension
-      const filePath = path.join(__dirname, '..', '..', 'uploads', fileName); // Full path
-
-      await this.fileService.deleteFile(filePath); // Ensure correct path
-    }
-
     let photoUrl: string;
     if (photo) {
       photoUrl = await this.fileService.saveFile(photo);
+      // Delete old photo if it exists
+      if (user?.photo) {
+        const urlParts = user.photo.split('/'); // Split the URL
+        const fileName = urlParts[urlParts.length - 1]; // Get the file name with extension
+        const filePath = path.join(__dirname, '..', '..', 'uploads', fileName); // Full path
+
+        await this.fileService.deleteFile(filePath); // Ensure correct path
+      }
     }
 
     updateUserDto.points = Number(updateUserDto.points);
