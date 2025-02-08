@@ -28,9 +28,14 @@ export class UserService {
 
   async findAll() {
     const users = await this.prisma.user.findMany({
-      orderBy: {
-        points: 'desc',
-      },
+      orderBy: [
+        {
+          points: 'desc',
+        },
+        {
+          name: 'asc',
+        }
+      ],
       select: {
         id: true,
         name: true,
@@ -265,5 +270,27 @@ export class UserService {
       console.error(e); // Log the error for debugging
       throw new HttpException('User not found', 404);
     }
+  }
+
+  async removeAllDays(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+      }
+    });
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+    await this.prisma.userDay.deleteMany({
+      where: {
+        userId: user.id,
+      },
+    });
+    return {
+      message: 'All days removed successfully',
+    };
   }
 }
