@@ -266,4 +266,26 @@ export class UserService {
       throw new HttpException('User not found', 404);
     }
   }
+
+  async removeAllDays(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id,
+      },
+      select: {
+        id: true,
+      }
+    });
+    if (!user) {
+      throw new HttpException('User not found', 404);
+    }
+    await this.prisma.userDay.deleteMany({
+      where: {
+        userId: user.id,
+      },
+    });
+    return {
+      message: 'All days removed successfully',
+    };
+  }
 }
