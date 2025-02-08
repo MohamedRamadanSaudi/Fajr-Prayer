@@ -28,9 +28,14 @@ export class UserService {
 
   async findAll() {
     const users = await this.prisma.user.findMany({
-      orderBy: {
-        points: 'desc',
-      },
+      orderBy: [
+        {
+          points: 'desc',
+        },
+        {
+          name: 'asc',
+        }
+      ],
       select: {
         id: true,
         name: true,
