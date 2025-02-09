@@ -102,9 +102,14 @@ export class UserService {
     }
 
     const users = await this.prisma.user.findMany({
-      orderBy: {
-        points: 'desc',
-      },
+      orderBy: [
+        {
+          points: 'desc',
+        },
+        {
+          name: 'asc',
+        }
+      ]
     });
 
     const rank = users.findIndex((u) => u.id === user.id) + 1;
