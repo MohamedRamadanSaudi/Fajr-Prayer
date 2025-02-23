@@ -10,7 +10,7 @@ import { DaysModule } from './days/days.module';
 import { LoggerMiddleware } from './logger/logger.middleware';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-// import { ScheduleModule } from '@nestjs/schedule';
+import { ScheduleModule } from '@nestjs/schedule';
 import { GiftModule } from './gift/gift.module';
 
 @Module({
@@ -25,7 +25,7 @@ import { GiftModule } from './gift/gift.module';
       rootPath: join(__dirname, '..', 'uploads'), // Serve files from the uploads folder
     }),
     AdminModule, AuthModule, UserModule, DaysModule, GiftModule,
-    // ScheduleModule.forRoot(),
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService],
