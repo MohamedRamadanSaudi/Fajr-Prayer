@@ -234,7 +234,7 @@ export class DaysService {
     return Promise.all(userDayPromises);
   }
 
-  @Cron('0 50 6 * * *', {
+  @Cron('0 22 6 * * *', {
     timeZone: 'Africa/Cairo',
   })
   async createDefaultUserDaysAutomatically() {
